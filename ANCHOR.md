@@ -99,6 +99,10 @@
   - Fixed Vercel 15s gateway timeout 502 error by defaulting `router_mode: bool = True` in `AskRequest` (`backend/app/api/agent.py`) and `answer()` (`backend/app/agent/agent.py`).
   - Bound `router_mode: true` and `workspace` parameter in UI fetch payload (`ui/src/app/page.js`), adding `res.ok` check to prevent JSON parse errors. Response times cut from 35.6s to 0.89s.
   - Verification: `tests/test_api.py` 7/7 passed in 8.9s; `tests/test_agent.py` 10/10 passed in 12.4s; `bun run build` compiled in 2.4s.
+- Backend Startup Resilience & Degraded Cloud Recovery (2026-10-25):
+  - Wrapped `init_db()` in `backend/app/core/db.py` in a comprehensive try/except block with `reset_client()`. Prevents unhandled connection/DNS errors (such as paused FalkorDB Cloud instances or transient network drops) from crashing FastAPI during lifespan startup (`exit code 3` on Render).
+  - Preserved HTTP service availability so `/health` returns 200 OK with `status: degraded`, allowing health checks to pass and enabling automatic reconnection on subsequent requests once the database comes back online.
+  - Verification: 73/73 pytest green in 47.3s; verified clean uvicorn boot and degraded `/health` response on broken DB host without process crash.
 
 ## (c) In progress right now
 

@@ -37,5 +37,8 @@ In compliance with the FalkorDB Graph Hacks Hackathon rules (Rules 7, 12, 13), a
 - **2026-10-20 (Production Sub-Second Router & Timeout Elimination)**:
   - **Vercel Timeout Elimination**: Defaulted `router_mode: bool = True` in `backend/app/api/agent.py` and `backend/app/agent/agent.py` to route queries directly through FalkorDB's deterministic Cypher engine, cutting response times from 35.6s to 0.89s and eliminating Vercel's 15s proxy 502 errors.
   - **Client Resilience**: Updated `ui/src/app/page.js` to pass `router_mode: true` and `workspace`, adding HTTP status validation prior to JSON parsing.
+- **2026-10-25 (Backend Startup Resilience & Degraded Cloud Recovery)**:
+  - **Graceful Startup Handling**: Wrapped `init_db()` in `backend/app/core/db.py` in a comprehensive try/except block with `reset_client()`. Prevents unhandled connection/DNS errors (such as paused FalkorDB Cloud instances or transient network drops) from crashing FastAPI during lifespan startup (`exit code 3` on Render).
+  - **Degraded Status Mode**: Preserved HTTP service availability so `/health` returns 200 OK with `status: degraded`, allowing health checks to pass and enabling automatic reconnection on subsequent requests once the database comes back online.
 
 
